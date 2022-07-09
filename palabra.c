@@ -13,11 +13,12 @@ palabra_t *palabra_crear(char *p, size_t n) {
         return NULL;
 
     palabra->letras = malloc((n + 1) * sizeof(char));
-    if(palabra->letras == NULL)
+    if(palabra->letras == NULL) {
+        free(palabra);
         return NULL;
+    }
 
     strcpy(palabra->letras, p);
-
     palabra->n = n;
 
     return palabra;
@@ -25,6 +26,7 @@ palabra_t *palabra_crear(char *p, size_t n) {
 
 
 void palabra_destruir(palabra_t *p) {
+    free(p->letras);
     free(p);
 }
 

@@ -6,6 +6,7 @@
 #define MAX_PALABRAS 100
 #define MAX_LETRAS 100
 
+
 /* para bsearch
 static int cmp(const void *a, const void *b) {
     return strcmp((char *)a, (char *)b);
@@ -22,14 +23,21 @@ static int cmp(const void *a, const void *b) {
 /* Devuelve un string con 6 caracteres incluido el \0, con banderas G si es correcta la posicion y la letra, Y si solo es correcta la letra, - si la letra no esta incluida. */
 char *letras_verificar(char *p_a_adivinar, char *p_ingresada) {
     size_t l = strlen(p_ingresada);
-    char *res = malloc((l + 1) * sizeof(char));
+    char *res = calloc(l + 1,  sizeof(char));
     if(res == NULL) return NULL;
 
     char *flags_a = calloc(l + 1, sizeof(char));
-    if(flags_a == NULL) return NULL;
+    if(flags_a == NULL) {
+        free(res);
+        return NULL;
+    }
 
     char *flags_b = calloc(l + 1, sizeof(char));
-    if(flags_b == NULL) return NULL;
+    if(flags_b == NULL) {
+        free(res);
+        free(flags_a);
+        return NULL;
+    }
 
     /* Primera recorrida para marcar las 'G' */
     for(size_t i = 0; p_ingresada[i] != '\0'; i++) {
@@ -65,6 +73,9 @@ char *letras_verificar(char *p_a_adivinar, char *p_ingresada) {
         ib++;
     }
     res[ib] = '\0';
+
+    free(flags_a);
+    free(flags_b);
 
     return res;
 }

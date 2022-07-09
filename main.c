@@ -58,27 +58,33 @@ int main(void) {
     lista->p = calloc(MAX_PALABRAS, sizeof(palabra_t **));
     if(lista->p == NULL) {
         perror("Memoria insuficiente.\n");
+        free(lista);
         fclose(fi);
-    return 1;
+        return 1;
     }
 
     /* Lectura del archivo y carga de los datos*/
     char palabra_temp[MAX_LETRAS];
-    size_t i = 0;
     lista->n = 0;
-    while(fscanf(fi, "%s", palabra_temp) != EOF && i < MAX_PALABRAS) {
-        lista->p[i] = palabra_crear(palabra_temp, strlen(palabra_temp));
-        if(lista->p[i] == NULL) {
+    while(fscanf(fi, "%s", palabra_temp) != EOF && lista->n < MAX_PALABRAS) {
+        lista->p[lista->n] = palabra_crear(palabra_temp, strlen(palabra_temp));
+        if(lista->p[lista->n] == NULL) {
             perror("Memoria insuficiente.\n");
+
+            while(lista->n > 0) {
+                (lista->n)--;
+                palabra_destruir(lista->p[lista->n]);
+            }
+            free(lista->p);
+            free(lista);
+
             fclose(fi);
             return 1;
         }
         (lista->n)++;
-        i++;
     }
 
     fclose(fi);
-
 
     /* Se elije una palabra aleatoria */
     srand(time(NULL));
@@ -92,24 +98,21 @@ int main(void) {
     /* Se le pide al usuario que ingrese una palabra con la cantidad de letras */
     size_t turno = 1;
     bool victoria = false;
-    char *resultado;
-
     while(turno <= MAX_TURNOS && victoria == false) {
         printf("Turno %zd - ", turno);
         printf("Ingrese una palabra de 5 letras.\n");
         char str[MAX_LETRAS];
         if(input(str, MAX_LETRAS) == false) {
             perror("Error.\n");
-            /* Se libera la memoria */
-            for(size_t j = 0; j < lista->n; j++)
-                palabra_destruir(lista->p[i]);
 
+            while(lista->n > 0) {
+                (lista->n)--;
+                palabra_destruir(lista->p[lista->n]);
+            }
             free(lista->p);
             free(lista);
-            /*
-            if(resultado != NULL)
-                free(resultado);
-            */
+
+            fclose(fi);
             return 1;
         }
 
@@ -120,16 +123,20 @@ int main(void) {
 
         /* Verificar que la palabra este en la lista */
 
+
         /* Se compara esa palabra con la palabra a encontrar. */
-        resultado = letras_verificar(palabra_obtener_palabra(lista->p[n_rand]), str);
+        char *resultado = letras_verificar(palabra_obtener_palabra(lista->p[n_rand]), str);
         if(resultado == NULL) {
             perror("Error.\n");
-            /* Se libera la memoria */
-            for(size_t j = 0; j < lista->n; j++)
-                palabra_destruir(lista->p[i]);
 
-            free(lista->p);
+            while(lista->n > 0) {
+                (lista->n)--;
+                palabra_destruir(lista->p[lista->n]);
+            }
+            free(lista->p); 
             free(lista);
+
+            fclose(fi);
 
             return 1;
         }
@@ -141,9 +148,8 @@ int main(void) {
         if(victoria_verificar(resultado) == true) 
             victoria = true;
 
-        /* Aca deberia liberar la memoria de resultado creo */
+        if(resultado != NULL) free(resultado);
 
-        /* Se pasa al siguiente turno si no se adivino la palabra */
         turno++;
     }
 
@@ -156,14 +162,13 @@ int main(void) {
     }
 
     /* Liberacion de memoria */
-    for(size_t j = 0; j < lista->n; j++)
-        palabra_destruir(lista->p[i]);
+    while(lista->n > 0) {
+        lista->n--;
+        palabra_destruir(lista->p[lista->n]);
+    }
 
     free(lista->p);
     free(lista);
-/*
-    if(resultado != NULL)
-        free(resultado);
-*/
+
     return 0;
 }
